@@ -28,24 +28,7 @@ func InsertAVLNode[T cmp.Ordered](node *AVLNode[T], val T) *AVLNode[T] {
 	}
 
 	updateHeight(node)
-	balancing(node, val)
-	// balanceFactor := calculateBalanceFactor(node)
-
-	// if balanceFactor > 1 {
-	// 	if val < node.left.Val {
-	// 		return rotateRight(node)
-	// 	} else if val > node.left.Val {
-	// 		node.left = rotateLeft(node.left)
-	// 		return rotateRight(node)
-	// 	}
-	// } else if balanceFactor < -1 {
-	// 	if val > node.right.Val {
-	// 		return rotateLeft(node)
-	// 	} else if val < node.right.Val {
-	// 		node.right = rotateRight(node.right)
-	// 		return rotateLeft(node)
-	// 	}
-	// }
+	node = balancing(node)
 
 	return node
 }
@@ -56,7 +39,7 @@ func DeleteAVLNode[T cmp.Ordered](root *AVLNode[T], val T) *AVLNode[T] {
 		return nil
 	}
 	updateHeight(root)
-	return balancing(root, val)
+	return balancing(root)
 }
 
 func deleteAVLNode[T cmp.Ordered](node *AVLNode[T], val T) *AVLNode[T] {
@@ -72,10 +55,9 @@ func deleteAVLNode[T cmp.Ordered](node *AVLNode[T], val T) *AVLNode[T] {
 		node.right = rightResult
 	}
 
-	updateHeight(node)
-	node = balancing(node, val)
-
 	if val != node.Val {
+		updateHeight(node)
+		node = balancing(node)
 		return node
 	}
 
@@ -83,14 +65,8 @@ func deleteAVLNode[T cmp.Ordered](node *AVLNode[T], val T) *AVLNode[T] {
 	if replacement == nil {
 		return nil
 	}
-	if replacement.left != nil && node.left != nil && replacement.left.Val != node.left.Val ||
-		replacement.left == nil && node.left != nil && replacement.Val != node.left.Val {
-		replacement.left = node.left
-	}
-	if replacement.right != nil && node.right != nil && replacement.right.Val != node.right.Val ||
-		replacement.right == nil && node.right != nil && replacement.Val != node.right.Val {
-		replacement.right = node.right
-	}
+	setLeftIfNotEqual(replacement, node)
+	setRightIfNotEqual(replacement, node)
 
 	if parent != nil {
 		if replacement.Val < parent.Val {
@@ -106,27 +82,6 @@ func deleteAVLNode[T cmp.Ordered](node *AVLNode[T], val T) *AVLNode[T] {
 	return replacement
 }
 
-func balancing[T cmp.Ordered](node *AVLNode[T], val T) (newRoot *AVLNode[T]) {
-	balanceFactor := calculateBalanceFactor(node)
-
-	if balanceFactor > 1 {
-		if val < node.left.Val {
-			return rotateRight(node)
-		} else if val > node.left.Val {
-			node.left = rotateLeft(node.left)
-			return rotateRight(node)
-		}
-	} else if balanceFactor < -1 {
-		if val > node.right.Val {
-			return rotateLeft(node)
-		} else if val < node.right.Val {
-			node.right = rotateRight(node.right)
-			return rotateLeft(node)
-		}
-	}
-	return node
-}
-
 func updateHeight[T cmp.Ordered](node *AVLNode[T]) {
 	if node == nil {
 		return
@@ -134,20 +89,28 @@ func updateHeight[T cmp.Ordered](node *AVLNode[T]) {
 	node.height = 1 + max(getHeight(node.left), getHeight(node.right))
 }
 
-func findReplacement[T cmp.Ordered](node *AVLNode[T]) *AVLNode[T] {
+func balancing[T cmp.Ordered](node *AVLNode[T]) (newRoot *AVLNode[T]) {
 	if node == nil {
-		return nil
+		return node
 	}
+	balanceFactor := calculateBalanceFactor(node)
 
-	leftInOrder := inOrder(node.left)
-	rightInOrder := inOrder(node.right)
-
-	if len(leftInOrder) > 0 {
-		return leftInOrder[len(leftInOrder)-1]
-	} else if len(rightInOrder) > 0 {
-		return rightInOrder[0]
+	if balanceFactor > 1 {
+		if calculateBalanceFactor(node.left) >= 0 {
+			return rotateRight(node)
+		} else {
+			node.left = rotateLeft(node.left)
+			return rotateRight(node)
+		}
+	} else if balanceFactor < -1 {
+		if calculateBalanceFactor(node.right) <= 0 {
+			return rotateLeft(node)
+		} else {
+			node.right = rotateRight(node.right)
+			return rotateLeft(node)
+		}
 	}
-	return nil
+	return node
 }
 
 func findReplacementWithParent[T cmp.Ordered](node *AVLNode[T]) (replacement, parent *AVLNode[T]) {
@@ -168,6 +131,20 @@ func findReplacementWithParent[T cmp.Ordered](node *AVLNode[T]) (replacement, pa
 		return rightInOrder[0], nil
 	}
 	return nil, nil
+}
+
+func setLeftIfNotEqual[T cmp.Ordered](target, source *AVLNode[T]) {
+	if target.left != nil && source.left != nil && target.left.Val != source.left.Val ||
+		target.left == nil && source.left != nil && target.Val != source.left.Val {
+		target.left = source.left
+	}
+}
+
+func setRightIfNotEqual[T cmp.Ordered](target, source *AVLNode[T]) {
+	if target.right != nil && source.right != nil && target.right.Val != source.right.Val ||
+		target.right == nil && source.right != nil && target.Val != source.right.Val {
+		target.right = source.right
+	}
 }
 
 func inOrder[T cmp.Ordered](node *AVLNode[T]) []*AVLNode[T] {
@@ -232,30 +209,7 @@ func BinarySearchAVLTree[T cmp.Ordered](node *AVLNode[T], val T) *AVLNode[T] {
 	}
 }
 
-func PrintBreadthFirst[T cmp.Ordered](root *AVLNode[T]) {
-	if root == nil {
-		return
-	}
-	que := []*AVLNode[T]{root}
-	levelLen := 0
-	for len(que) > 0 {
-		levelLen = len(que)
-		for idx := 0; idx < levelLen; idx++ {
-			if que[idx] != nil {
-				fmt.Printf(",%v:%d", que[idx].Val, que[idx].height)
-				que = append(que, que[idx].left)
-				que = append(que, que[idx].right)
-			} else {
-				fmt.Printf(",n")
-			}
-		}
-		fmt.Println()
-		que = que[levelLen:]
-	}
-	fmt.Println()
-}
-
-func FormatBreadthFirst[T cmp.Ordered](root *AVLNode[T]) string {
+func SerializeBreadthFirst[T cmp.Ordered](root *AVLNode[T]) string {
 	if root == nil {
 		return ""
 	}

@@ -56,7 +56,3 @@ func TestMatchPatternKMP_NoMatch(t *testing.T) {
 func TestMatchPatternKMP_PatternLonger(t *testing.T) {
 	assert.Empty(t, MatchPatternKMP("abc", "abcd"))
 }
-
-func TestSlice(t *testing.T) {
-
-}
