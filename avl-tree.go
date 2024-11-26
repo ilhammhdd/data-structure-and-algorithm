@@ -33,25 +33,16 @@ func InsertAVLNode[T cmp.Ordered](node *AVLNode[T], val T) *AVLNode[T] {
 	return node
 }
 
-func DeleteAVLNode[T cmp.Ordered](root *AVLNode[T], val T) *AVLNode[T] {
-	root = deleteAVLNode(root, val)
-	if root == nil {
-		return nil
-	}
-	updateHeight(root)
-	return balancing(root)
-}
-
-func deleteAVLNode[T cmp.Ordered](node *AVLNode[T], val T) *AVLNode[T] {
+func DeleteAVLNode[T cmp.Ordered](node *AVLNode[T], val T) *AVLNode[T] {
 	if node == nil {
 		return nil
 	}
 	switch {
 	case val < node.Val:
-		leftResult := deleteAVLNode(node.left, val)
+		leftResult := DeleteAVLNode(node.left, val)
 		node.left = leftResult
 	case val > node.Val:
-		rightResult := deleteAVLNode(node.right, val)
+		rightResult := DeleteAVLNode(node.right, val)
 		node.right = rightResult
 	}
 
@@ -80,13 +71,6 @@ func deleteAVLNode[T cmp.Ordered](node *AVLNode[T], val T) *AVLNode[T] {
 	updateHeight(replacement)
 
 	return replacement
-}
-
-func updateHeight[T cmp.Ordered](node *AVLNode[T]) {
-	if node == nil {
-		return
-	}
-	node.height = 1 + max(getHeight(node.left), getHeight(node.right))
 }
 
 func balancing[T cmp.Ordered](node *AVLNode[T]) (newRoot *AVLNode[T]) {
@@ -177,6 +161,13 @@ func rotateLeft[T cmp.Ordered](node *AVLNode[T]) *AVLNode[T] {
 	updateHeight(newRoot)
 
 	return newRoot
+}
+
+func updateHeight[T cmp.Ordered](node *AVLNode[T]) {
+	if node == nil {
+		return
+	}
+	node.height = 1 + max(getHeight(node.left), getHeight(node.right))
 }
 
 func calculateBalanceFactor[T cmp.Ordered](node *AVLNode[T]) int32 {
