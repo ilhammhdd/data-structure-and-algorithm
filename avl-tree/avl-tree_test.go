@@ -1,4 +1,4 @@
-package main
+package avlTree
 
 import (
 	"testing"

@@ -1,4 +1,4 @@
-package main
+package avlTree
 
 import (
 	"cmp"
@@ -210,7 +210,7 @@ func SerializeBreadthFirst[T cmp.Ordered](root *AVLNode[T]) string {
 	for len(que) > 0 {
 		levelLen = len(que)
 		sb.WriteString("|")
-		for idx := 0; idx < levelLen; idx++ {
+		for idx := range levelLen {
 			if idx > 0 {
 				sb.WriteByte(',')
 			}

@@ -1,4 +1,4 @@
-package main
+package kmp
 
 func MatchPatternKMP(txt, pattern string) []int {
 	result := []int{}

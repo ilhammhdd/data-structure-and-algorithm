@@ -1,4 +1,4 @@
-package main
+package fibonacci
 
 func fib(n int) int {
 	if n == 0 || n == 1 {
